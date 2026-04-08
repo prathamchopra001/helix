@@ -21,6 +21,7 @@ What this adds and why the model needs it:
 - overnight_gap:    (open - prev_close) / prev_close — how much the price gapped
                     overnight. Large gaps signal news events between sessions.
 """
+
 import numpy as np
 import pandas as pd
 

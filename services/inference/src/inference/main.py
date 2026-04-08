@@ -9,6 +9,7 @@ Startup sequence:
   5. Mount rate limiter (100 req/min on /predict, 10 req/min on /predict/batch)
   6. Register routes
 """
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI

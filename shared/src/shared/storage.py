@@ -23,9 +23,7 @@ class StorageClient:
         secret_key: str,
         secure: bool = False,
     ) -> None:
-        self._client = Minio(
-            endpoint, access_key=access_key, secret_key=secret_key, secure=secure
-        )
+        self._client = Minio(endpoint, access_key=access_key, secret_key=secret_key, secure=secure)
 
     def ensure_bucket(self, bucket: str) -> None:
         if not self._client.bucket_exists(bucket):

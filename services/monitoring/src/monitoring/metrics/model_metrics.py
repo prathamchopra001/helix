@@ -10,6 +10,7 @@ For each window (7d, 30d):
   - Compute F1, precision, recall, AUC
   - Write to monitoring.model_metrics
 """
+
 from __future__ import annotations
 
 import psycopg2

@@ -1,4 +1,5 @@
 """MinIO writer — archives raw OHLCV CSVs. Idempotent: overwrites the same key."""
+
 from datetime import UTC, datetime
 
 import pandas as pd

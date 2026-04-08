@@ -11,6 +11,7 @@ What this DAG does:
 Schedule: @weekly + triggerable on demand by monitoring_dag when drift is detected
 Max active runs: 1 — never run two training jobs simultaneously
 """
+
 from __future__ import annotations
 
 from datetime import timedelta
@@ -24,6 +25,7 @@ PROMOTION_THRESHOLD = 0.02
 
 def _train(**context: dict) -> None:
     import sys
+
     sys.path.insert(0, "/opt/helix/shared/src")
     sys.path.insert(0, "/opt/helix/training/src")
 
@@ -46,14 +48,13 @@ def _export_onnx(**context: dict) -> None:
     Skips silently if the new version wasn't promoted.
     """
     import sys
+
     sys.path.insert(0, "/opt/helix/shared/src")
     sys.path.insert(0, "/opt/helix/training/src")
 
     from mlflow.tracking import MlflowClient
 
-    result = context["task_instance"].xcom_pull(
-        task_ids="train_model", key="train_result"
-    )
+    result = context["task_instance"].xcom_pull(task_ids="train_model", key="train_result")
     model_version = result["model_version"]
     model_name = "helix_anomaly_detector"
 
@@ -65,6 +66,7 @@ def _export_onnx(**context: dict) -> None:
         return
 
     from training.exporters.onnx_exporter import export_to_onnx
+
     key = export_to_onnx(model_version)
     print(f"ONNX export complete for version {model_version}: {key}")
 
@@ -78,9 +80,7 @@ def _promote(**context: dict) -> None:
     """
     from mlflow.tracking import MlflowClient
 
-    result = context["task_instance"].xcom_pull(
-        task_ids="train_model", key="train_result"
-    )
+    result = context["task_instance"].xcom_pull(task_ids="train_model", key="train_result")
 
     model_name = "helix_anomaly_detector"
     new_version: str = result["model_version"]
@@ -91,10 +91,7 @@ def _promote(**context: dict) -> None:
     # threshold_val_f1 is logged when _find_best_threshold() runs in the trainer.
     # Falls back to best_val_f1 for models trained before threshold optimisation.
     new_run = client.get_run(result["mlflow_run_id"])
-    new_f1: float = float(
-        new_run.data.metrics.get("threshold_val_f1")
-        or result["best_val_f1"]
-    )
+    new_f1: float = float(new_run.data.metrics.get("threshold_val_f1") or result["best_val_f1"])
 
     # Find the current Production model's comparable F1 (also prefer tuned)
     current_f1 = 0.0
@@ -143,7 +140,6 @@ with DAG(
     },
     tags=["training", "mlflow"],
 ) as dag:
-
     train_task = PythonOperator(
         task_id="train_model",
         python_callable=_train,

@@ -7,6 +7,7 @@ GET  /health         — liveness probe (is the process alive?)
 GET  /ready          — readiness probe (is a model loaded?)
 GET  /metrics        — Prometheus metrics
 """
+
 import time
 import uuid
 
@@ -34,6 +35,7 @@ router = APIRouter()
 
 # ── Request / Response models ──────────────────────────────────────────────────
 
+
 class PredictRequest(BaseModel):
     ticker: str = Field(..., description="Ticker symbol, e.g. AAPL")
 
@@ -58,6 +60,7 @@ class BatchPredictResponse(BaseModel):
 
 
 # ── Inference helper ───────────────────────────────────────────────────────────
+
 
 def _run_inference(input_array: np.ndarray, model) -> float:
     """
@@ -86,13 +89,12 @@ def _run_inference(input_array: np.ndarray, model) -> float:
         return float(output[0, 0])
 
     elif model.backend == Backend.ONNX:
-        result = model.ort_session.run(
-            ["output"], {"input": input_array}
-        )
+        result = model.ort_session.run(["output"], {"input": input_array})
         return float(result[0][0, 0])
 
     else:  # PyTorch
         import torch
+
         tensor = torch.from_numpy(input_array)
         with torch.no_grad():
             out = model.torch_model(tensor)
@@ -111,6 +113,7 @@ def _log_prediction(
 ) -> None:
     """Write prediction to predictions.inference_log. Fire-and-forget — errors logged, not raised."""
     import json as _json
+
     try:
         conn = psycopg2.connect(dsn)
         with conn, conn.cursor() as cur:
@@ -122,8 +125,16 @@ def _log_prediction(
                     VALUES (%s, %s, NOW(), %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (request_id) DO NOTHING
                     """,
-                (request_id, ticker, _json.dumps({}), score, label,
-                 model_version, backend, latency_ms),
+                (
+                    request_id,
+                    ticker,
+                    _json.dumps({}),
+                    score,
+                    label,
+                    model_version,
+                    backend,
+                    latency_ms,
+                ),
             )
         conn.close()
     except Exception as exc:
@@ -177,7 +188,16 @@ def _predict_one(ticker: str, request_id: str, correlation_id: str) -> PredictRe
         request_id=request_id,
     )
 
-    _log_prediction(ticker, score, label, model.version, model.backend.value, latency_ms, request_id, settings.dsn)
+    _log_prediction(
+        ticker,
+        score,
+        label,
+        model.version,
+        model.backend.value,
+        latency_ms,
+        request_id,
+        settings.dsn,
+    )
 
     return PredictResponse(
         ticker=ticker,
@@ -191,6 +211,7 @@ def _predict_one(ticker: str, request_id: str, correlation_id: str) -> PredictRe
 
 
 # ── Routes ─────────────────────────────────────────────────────────────────────
+
 
 @router.post("/predict", response_model=PredictResponse)
 def predict(body: PredictRequest, request: Request):

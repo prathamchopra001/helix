@@ -6,6 +6,7 @@ Valid keys are defined in the API_KEYS env var (comma-separated).
 
 Returns 401 if header is missing, 403 if key is invalid.
 """
+
 import json
 
 from fastapi import Request

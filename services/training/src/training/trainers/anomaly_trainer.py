@@ -30,6 +30,7 @@ MLflow logging:
   The model is registered in MLflow Model Registry as a new version in "Staging".
   The retraining DAG promotes it to "Production" only if F1 improves by > 0.02.
 """
+
 import os
 from typing import Any
 
@@ -65,6 +66,7 @@ class FocalLoss(nn.Module):
     alpha: per-class weight derived from class imbalance ratio.
            alpha = pos_weight / (1 + pos_weight) for the positive class.
     """
+
     def __init__(self, gamma: float = 2.0, pos_weight: float = 1.0) -> None:
         super().__init__()
         self.gamma = gamma
@@ -72,7 +74,7 @@ class FocalLoss(nn.Module):
 
     def forward(self, pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         bce = functional.binary_cross_entropy(pred, target, reduction="none")
-        pt = torch.exp(-bce)                                    # probability of correct class
+        pt = torch.exp(-bce)  # probability of correct class
         alpha_t = self.alpha * target + (1 - self.alpha) * (1 - target)
         focal = alpha_t * (1 - pt) ** self.gamma * bce
         return focal.mean()

@@ -24,6 +24,7 @@ Architecture decisions:
   - 29 features (vs original 25): added return_5d, return_20d, hl_range,
     overnight_gap for momentum and volatility signals.
 """
+
 import torch
 import torch.nn as nn
 
@@ -33,9 +34,10 @@ class LSTMTransformerModel(nn.Module):
     Name kept as LSTMTransformerModel for MLflow registry compatibility —
     older model versions (1-11) were registered under this class name.
     """
+
     def __init__(
         self,
-        input_size: int = 29,   # 25 base + 4 momentum/volatility features
+        input_size: int = 29,  # 25 base + 4 momentum/volatility features
         hidden_size: int = 128,
         lstm_layers: int = 3,
         lstm_dropout: float = 0.3,

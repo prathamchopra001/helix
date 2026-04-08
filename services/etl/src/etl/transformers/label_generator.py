@@ -13,6 +13,7 @@ The combination is the signal.
 
 Thresholds are env-configurable so they can be tuned without changing code.
 """
+
 import os
 
 import pandas as pd

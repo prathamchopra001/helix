@@ -11,6 +11,7 @@ Schedule: @daily (runs at midnight UTC)
 SLA: 2 hours — if the task hasn't finished by then, Airflow sends an SLA miss alert
 Max active runs: 1 — prevents two ETL runs overlapping and double-writing features
 """
+
 from __future__ import annotations
 
 from datetime import timedelta
@@ -22,6 +23,7 @@ from airflow.utils.dates import days_ago
 
 def _run_etl(**context: dict) -> None:
     import sys
+
     sys.path.insert(0, "/opt/helix/shared/src")
     sys.path.insert(0, "/opt/helix/etl/src")
 
@@ -51,7 +53,6 @@ with DAG(
     },
     tags=["etl", "features"],
 ) as dag:
-
     PythonOperator(
         task_id="run_etl",
         python_callable=_run_etl,

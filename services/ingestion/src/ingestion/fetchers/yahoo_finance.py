@@ -1,4 +1,5 @@
 """Yahoo Finance OHLCV fetcher with exponential backoff retry."""
+
 import time
 
 import pandas as pd

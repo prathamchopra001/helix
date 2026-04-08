@@ -29,6 +29,7 @@ SLA targets (CPU/ONNX — no GPU):
   p95 latency  < 100ms
   p99 latency  < 200ms
 """
+
 import random
 
 from locust import HttpUser, between, events, task
@@ -37,8 +38,14 @@ from locust import HttpUser, between, events, task
 API_KEYS = ["dev-key-1", "dev-key-2"]
 
 TICKERS = [
-    "AAPL", "MSFT", "GOOGL", "TSLA", "SPY",
-    "QQQ", "BTC-USD", "ETH-USD",
+    "AAPL",
+    "MSFT",
+    "GOOGL",
+    "TSLA",
+    "SPY",
+    "QQQ",
+    "BTC-USD",
+    "ETH-USD",
 ]
 
 
@@ -49,6 +56,7 @@ class InferenceUser(HttpUser):
     - 15% batch predict requests
     - 5% health/ready checks
     """
+
     wait_time = between(0.1, 0.5)  # Think time between requests (100–500ms)
 
     def on_start(self) -> None:
@@ -136,6 +144,7 @@ class UnauthenticatedUser(HttpUser):
     Simulates unauthenticated traffic — should always get 401.
     Weight=1 means 1 in 10 users is unauthenticated.
     """
+
     weight = 1
     wait_time = between(1, 3)
 
@@ -154,6 +163,7 @@ class UnauthenticatedUser(HttpUser):
 
 
 # ── SLA verification hook ──────────────────────────────────────────────────────
+
 
 @events.quitting.add_listener
 def check_sla(environment, **kwargs):
@@ -174,10 +184,18 @@ def check_sla(environment, **kwargs):
     print(f"Failures:   {stats.num_failures:,}")
     # CPU/ONNX targets. GPU/TRT targets would be ~10x tighter.
     p50_limit, p95_limit, p99_limit = 800, 2000, 4000
-    print(f"p50 latency: {p50:>6.0f}ms  {'[PASS]' if p50 < p50_limit else f'[FAIL] target < {p50_limit}ms'}")
-    print(f"p95 latency: {p95:>6.0f}ms  {'[PASS]' if p95 < p95_limit else f'[FAIL] target < {p95_limit}ms'}")
-    print(f"p99 latency: {p99:>6.0f}ms  {'[PASS]' if p99 < p99_limit else f'[FAIL] target < {p99_limit}ms'}")
-    print(f"Error rate:  {error_rate:>6.2f}%  {'[PASS]' if error_rate < 1 else '[FAIL] target < 1%'}")
+    print(
+        f"p50 latency: {p50:>6.0f}ms  {'[PASS]' if p50 < p50_limit else f'[FAIL] target < {p50_limit}ms'}"
+    )
+    print(
+        f"p95 latency: {p95:>6.0f}ms  {'[PASS]' if p95 < p95_limit else f'[FAIL] target < {p95_limit}ms'}"
+    )
+    print(
+        f"p99 latency: {p99:>6.0f}ms  {'[PASS]' if p99 < p99_limit else f'[FAIL] target < {p99_limit}ms'}"
+    )
+    print(
+        f"Error rate:  {error_rate:>6.2f}%  {'[PASS]' if error_rate < 1 else '[FAIL] target < 1%'}"
+    )
     print("=" * 60)
 
     # Fail the test run if any SLA is breached

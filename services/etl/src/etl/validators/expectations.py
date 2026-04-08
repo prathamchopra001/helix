@@ -18,6 +18,7 @@ Checks:
   - close > 0 (sanity check — price can't be negative or zero)
   - timestamp is unique per ticker (no duplicate rows)
 """
+
 import pandas as pd
 
 from shared.logging import get_logger

@@ -23,6 +23,7 @@ Split handling:
   Windows that contain rows from multiple splits are assigned to the split
   of their last day. This keeps the split assignment clean.
 """
+
 import io
 import json
 import os
@@ -84,7 +85,11 @@ def load_features_df() -> pd.DataFrame:
         raise RuntimeError("No feature vectors found in the database")
 
     # Derive feature columns from the first row — sorted for reproducibility
-    first_feat = json.loads(rows[0]["features"]) if isinstance(rows[0]["features"], str) else rows[0]["features"]
+    first_feat = (
+        json.loads(rows[0]["features"])
+        if isinstance(rows[0]["features"], str)
+        else rows[0]["features"]
+    )
     FEATURE_COLS = sorted(first_feat.keys())
     log.info("feature_cols_detected", n_features=len(FEATURE_COLS), cols=FEATURE_COLS)
 
@@ -141,7 +146,7 @@ def build_windows(
         splits = tdf["split"].values
 
         for i in range(WINDOW_SIZE, len(tdf)):
-            window = features[i - WINDOW_SIZE:i]
+            window = features[i - WINDOW_SIZE : i]
             label = labels[i]
             split = splits[i]
             X_list.append(window)
@@ -172,6 +177,7 @@ class AnomalyWindowDataset(Dataset):
 
     def __init__(self, X: np.ndarray, y: np.ndarray) -> None:
         import torch
+
         self.X = torch.tensor(X, dtype=torch.float32)
         self.y = torch.tensor(y, dtype=torch.float32)
 

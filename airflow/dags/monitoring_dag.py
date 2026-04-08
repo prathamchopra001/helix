@@ -7,6 +7,7 @@ Tasks:
 
 Uses XCom to pass should_retrain between tasks.
 """
+
 from __future__ import annotations
 
 from datetime import timedelta
@@ -19,6 +20,7 @@ from airflow.utils.dates import days_ago
 
 def _run_monitoring(**context: dict) -> None:
     import sys
+
     sys.path.insert(0, "/opt/helix/shared/src")
     sys.path.insert(0, "/opt/helix/monitoring/src")
 
@@ -48,9 +50,11 @@ def _maybe_trigger_retrain(**context: dict) -> None:
     )
 
     import sys
+
     sys.path.insert(0, "/opt/helix/shared/src")
 
     from shared.logging import get_logger
+
     log = get_logger(__name__)
 
     if should_retrain:
@@ -68,6 +72,7 @@ def _maybe_trigger_retrain(**context: dict) -> None:
 
     # Raise SkipException if retraining is not needed so the trigger task is bypassed
     from airflow.exceptions import AirflowSkipException
+
     if not should_retrain:
         raise AirflowSkipException("No significant drift detected — skipping retraining.")
 
@@ -84,7 +89,6 @@ with DAG(
     },
     tags=["monitoring", "drift"],
 ) as dag:
-
     run_monitoring_task = PythonOperator(
         task_id="run_monitoring",
         python_callable=_run_monitoring,

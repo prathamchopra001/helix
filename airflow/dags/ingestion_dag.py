@@ -5,6 +5,7 @@ Schedule: @hourly
 SLA:      30 minutes
 Max runs: 1 concurrent run at a time (MAX_ACTIVE_RUNS_PER_DAG=1 set globally)
 """
+
 from datetime import datetime, timedelta
 
 from airflow import DAG

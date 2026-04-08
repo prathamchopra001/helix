@@ -2,12 +2,14 @@
 Unit tests for the LSTM model.
 No GPU, no MLflow, no DB — pure PyTorch.
 """
+
 import torch
 
 
 def test_model_output_shape():
     """Model should output (batch, 1) for any valid batch size."""
     import sys
+
     sys.path.insert(0, "services/training/src")
     from training.models.lstm_transformer import LSTMTransformerModel
 
@@ -24,6 +26,7 @@ def test_model_output_shape():
 def test_model_output_in_range():
     """Output must be a probability in [0, 1] (Sigmoid applied)."""
     import sys
+
     sys.path.insert(0, "services/training/src")
     from training.models.lstm_transformer import LSTMTransformerModel
 
@@ -39,6 +42,7 @@ def test_model_output_in_range():
 def test_model_deterministic_in_eval():
     """In eval mode, same input should always give same output."""
     import sys
+
     sys.path.insert(0, "services/training/src")
     from training.models.lstm_transformer import LSTMTransformerModel
 

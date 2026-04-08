@@ -31,6 +31,7 @@ Output: saves to MinIO at
   models/trt/{model_version}/engine.trt
   models/trt/{model_version}/build_metadata.json
 """
+
 import io
 import json
 import os
@@ -76,9 +77,7 @@ def build_engine_from_onnx(onnx_path: str) -> bytes:
     Returns the serialized engine as bytes.
     """
     builder = trt.Builder(TRT_LOGGER)
-    network = builder.create_network(
-        1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
-    )
+    network = builder.create_network(1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH))
     parser = trt.OnnxParser(network, TRT_LOGGER)
     config = builder.create_builder_config()
 
@@ -98,8 +97,8 @@ def build_engine_from_onnx(onnx_path: str) -> bytes:
     profile = builder.create_optimization_profile()
     profile.set_shape(
         "input",
-        min=(1, SEQ_LEN, N_FEATURES),   # smallest batch
-        opt=(8, SEQ_LEN, N_FEATURES),   # TRT optimizes hardest for this
+        min=(1, SEQ_LEN, N_FEATURES),  # smallest batch
+        opt=(8, SEQ_LEN, N_FEATURES),  # TRT optimizes hardest for this
         max=(32, SEQ_LEN, N_FEATURES),  # largest batch
     )
     config.add_optimization_profile(profile)
@@ -142,7 +141,8 @@ def export_to_tensorrt(
     # Upload engine
     engine_key = f"trt/{model_version}/engine.trt"
     client.put_object(
-        bucket, engine_key,
+        bucket,
+        engine_key,
         io.BytesIO(engine_bytes),
         length=len(engine_bytes),
     )
@@ -152,7 +152,8 @@ def export_to_tensorrt(
     metadata_bytes = json.dumps(metadata, indent=2).encode()
     metadata_key = f"trt/{model_version}/build_metadata.json"
     client.put_object(
-        bucket, metadata_key,
+        bucket,
+        metadata_key,
         io.BytesIO(metadata_bytes),
         length=len(metadata_bytes),
     )

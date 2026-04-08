@@ -21,6 +21,7 @@ Validation:
 
 Output: saves to MinIO at models/onnx/{model_version}/model.onnx
 """
+
 import io
 import os
 import tempfile
@@ -50,7 +51,9 @@ def export_to_onnx(model_version: str, correlation_id: str = "") -> str:
     mlflow_uri = os.getenv("MLFLOW_TRACKING_URI", "http://mlflow:5000")
     mlflow.set_tracking_uri(mlflow_uri)
 
-    log.info("loading_model_from_mlflow", model_version=model_version, correlation_id=correlation_id)
+    log.info(
+        "loading_model_from_mlflow", model_version=model_version, correlation_id=correlation_id
+    )
     model = mlflow.pytorch.load_model(f"models:/helix_anomaly_detector/{model_version}")
     model.eval()
 
@@ -72,12 +75,12 @@ def export_to_onnx(model_version: str, correlation_id: str = "") -> str:
         input_names=[INPUT_NAME],
         output_names=[OUTPUT_NAME],
         dynamic_axes={
-            INPUT_NAME: {0: "batch_size"},   # batch dimension is dynamic
+            INPUT_NAME: {0: "batch_size"},  # batch dimension is dynamic
             OUTPUT_NAME: {0: "batch_size"},
         },
         dynamo=False,  # Force legacy exporter — always produces a single .onnx file.
-                       # The new dynamo exporter (PyTorch 2.5+) splits weights into a
-                       # separate .onnx.data file which ORT can't load from bytes alone.
+        # The new dynamo exporter (PyTorch 2.5+) splits weights into a
+        # separate .onnx.data file which ORT can't load from bytes alone.
     )
 
     # Validate: run both models on the same input, compare outputs
@@ -86,9 +89,7 @@ def export_to_onnx(model_version: str, correlation_id: str = "") -> str:
         torch_output = model(dummy_input).numpy()
 
     ort_session = ort.InferenceSession(onnx_path, providers=["CPUExecutionProvider"])
-    onnx_output = ort_session.run(
-        [OUTPUT_NAME], {INPUT_NAME: dummy_input.numpy()}
-    )[0]
+    onnx_output = ort_session.run([OUTPUT_NAME], {INPUT_NAME: dummy_input.numpy()})[0]
 
     max_diff = float(np.abs(torch_output - onnx_output).max())
     if max_diff > VALIDATION_TOLERANCE:
@@ -108,5 +109,11 @@ def export_to_onnx(model_version: str, correlation_id: str = "") -> str:
     client.put_object(bucket, key, io.BytesIO(data), length=len(data))
 
     os.unlink(onnx_path)
-    log.info("onnx_uploaded", bucket=bucket, key=key, size_mb=round(len(data) / 1e6, 2), correlation_id=correlation_id)
+    log.info(
+        "onnx_uploaded",
+        bucket=bucket,
+        key=key,
+        size_mb=round(len(data) / 1e6, 2),
+        correlation_id=correlation_id,
+    )
     return key

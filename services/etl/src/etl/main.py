@@ -11,6 +11,7 @@ What run_etl() does end to end:
 
 Callable from Airflow PythonOperator or directly from a script.
 """
+
 import os
 
 import pandas as pd
@@ -71,7 +72,9 @@ def run_etl(
     dsn = _get_dsn()
 
     if tickers is None:
-        raw = os.getenv("ETL_TICKERS", "AAPL,MSFT,GOOGL,TSLA,SPY,QQQ,BTC-USD,ETH-USD,NVDA,AMZN,META")
+        raw = os.getenv(
+            "ETL_TICKERS", "AAPL,MSFT,GOOGL,TSLA,SPY,QQQ,BTC-USD,ETH-USD,NVDA,AMZN,META"
+        )
         tickers = [t.strip() for t in raw.split(",")]
 
     results: dict[str, int] = {}

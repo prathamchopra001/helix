@@ -2,6 +2,7 @@
 Unit tests for ETL transformers.
 These run without any I/O — pure function tests.
 """
+
 import numpy as np
 import pandas as pd
 
@@ -11,22 +12,26 @@ def _make_ohlcv(n: int = 100) -> pd.DataFrame:
     np.random.seed(42)
     dates = pd.date_range("2023-01-01", periods=n, freq="D")
     close = 100 + np.cumsum(np.random.randn(n))
-    return pd.DataFrame({
-        "ticker": "TEST",
-        "timestamp": dates,
-        "open": close * 0.99,
-        "high": close * 1.01,
-        "low": close * 0.98,
-        "close": close,
-        "volume": np.random.randint(1_000_000, 10_000_000, n).astype(float),
-    })
+    return pd.DataFrame(
+        {
+            "ticker": "TEST",
+            "timestamp": dates,
+            "open": close * 0.99,
+            "high": close * 1.01,
+            "low": close * 0.98,
+            "close": close,
+            "volume": np.random.randint(1_000_000, 10_000_000, n).astype(float),
+        }
+    )
 
 
 def _make_featured(n: int = 200) -> pd.DataFrame:
     """OHLCV + rolling stats — required before label generation."""
     import sys
+
     sys.path.insert(0, "services/etl/src")
     from etl.transformers.rolling_stats import add_rolling_stats
+
     df = _make_ohlcv(n)
     return add_rolling_stats(df).dropna()
 
@@ -59,6 +64,7 @@ def test_label_generator_returns_binary():
 def test_rolling_stats_no_nulls_after_warmup():
     """Rolling stats should have no nulls after the warmup period."""
     import sys
+
     sys.path.insert(0, "services/etl/src")
     from etl.transformers.rolling_stats import add_rolling_stats
 

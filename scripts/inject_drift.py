@@ -18,6 +18,7 @@ How it works:
   In --mode drift, it also inserts new feature_vectors with shifted
   distributions to guarantee PSI > 0.2 for most features.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -137,7 +138,7 @@ def inject_drifted_features(dsn: str, drift_factor: float = 2.5) -> int:
                         VALUES (%s, %s, %s, %s, %s)
                         ON CONFLICT DO NOTHING
                         """,
-                    (ticker, now, json.dumps(drifted), 1, 'val'),
+                    (ticker, now, json.dumps(drifted), 1, "val"),
                 )
                 inserted += 1
 
@@ -152,8 +153,16 @@ def inject_drifted_features(dsn: str, drift_factor: float = 2.5) -> int:
                         ON CONFLICT (request_id) DO NOTHING
                         """,
                     (
-                        str(uuid.uuid4()), ticker, now, json.dumps({}),
-                        0.85, 1, "synthetic", "pytorch", 12.0, now,
+                        str(uuid.uuid4()),
+                        ticker,
+                        now,
+                        json.dumps({}),
+                        0.85,
+                        1,
+                        "synthetic",
+                        "pytorch",
+                        12.0,
+                        now,
                     ),
                 )
 
@@ -169,10 +178,17 @@ def trigger_monitoring_dag() -> None:
     Airflow's default API auth is session-based, so CLI is more reliable.
     """
     import subprocess
+
     result = subprocess.run(
         [
-            "docker", "compose", "exec", "airflow-webserver",
-            "airflow", "dags", "trigger", "monitoring_dag",
+            "docker",
+            "compose",
+            "exec",
+            "airflow-webserver",
+            "airflow",
+            "dags",
+            "trigger",
+            "monitoring_dag",
         ],
         capture_output=True,
         text=True,
@@ -183,13 +199,29 @@ def trigger_monitoring_dag() -> None:
     else:
         # Also try unpause first in case it's paused
         subprocess.run(
-            ["docker", "compose", "exec", "airflow-webserver",
-             "airflow", "dags", "unpause", "monitoring_dag"],
+            [
+                "docker",
+                "compose",
+                "exec",
+                "airflow-webserver",
+                "airflow",
+                "dags",
+                "unpause",
+                "monitoring_dag",
+            ],
             capture_output=True,
         )
         result2 = subprocess.run(
-            ["docker", "compose", "exec", "airflow-webserver",
-             "airflow", "dags", "trigger", "monitoring_dag"],
+            [
+                "docker",
+                "compose",
+                "exec",
+                "airflow-webserver",
+                "airflow",
+                "dags",
+                "trigger",
+                "monitoring_dag",
+            ],
             capture_output=True,
             text=True,
         )

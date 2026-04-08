@@ -17,6 +17,7 @@ Why not use Evidently?
   Airflow's Celery worker hostname resolution at import time. Manual PSI
   is simple numpy and gives us exactly what we need without the 500MB dep.
 """
+
 from __future__ import annotations
 
 import json

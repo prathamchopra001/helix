@@ -3,6 +3,7 @@ Monitoring service entry point.
 
 Orchestrates drift detection and KPI computation. Called by monitoring_dag.
 """
+
 from __future__ import annotations
 
 from monitoring.config import MonitoringConfig

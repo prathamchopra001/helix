@@ -5,6 +5,7 @@ Usage:
     python -m ingestion.main              # fetch 1d for all default tickers
     python -m ingestion.main --period 2y  # full backfill
 """
+
 import os
 import uuid
 from datetime import UTC, datetime
@@ -28,7 +29,19 @@ def _get_dsn() -> str:
     )
 
 
-DEFAULT_TICKERS = ["AAPL", "MSFT", "GOOGL", "TSLA", "SPY", "QQQ", "BTC-USD", "ETH-USD", "NVDA", "AMZN", "META"]
+DEFAULT_TICKERS = [
+    "AAPL",
+    "MSFT",
+    "GOOGL",
+    "TSLA",
+    "SPY",
+    "QQQ",
+    "BTC-USD",
+    "ETH-USD",
+    "NVDA",
+    "AMZN",
+    "META",
+]
 
 
 class IngestionConfig(BaseConfig):

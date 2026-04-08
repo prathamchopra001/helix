@@ -15,6 +15,7 @@ Thread safety:
   _model_lock protects the global _active_backend / _active_version.
   Reads don't need the lock (Python GIL protects reference swaps on CPython).
 """
+
 import pickle
 import threading
 import time
@@ -44,11 +45,11 @@ class LoadedModel:
     version: str
     backend: Backend
     # One of these will be set depending on backend
-    trt_context: object = None       # tensorrt.IExecutionContext
-    ort_session: object = None       # onnxruntime.InferenceSession
-    torch_model: object = None       # nn.Module
-    scaler: object = None            # StandardScaler
-    threshold: float = 0.5          # classification threshold optimised on val set
+    trt_context: object = None  # tensorrt.IExecutionContext
+    ort_session: object = None  # onnxruntime.InferenceSession
+    torch_model: object = None  # nn.Module
+    scaler: object = None  # StandardScaler
+    threshold: float = 0.5  # classification threshold optimised on val set
 
 
 # Global active model — swapped atomically by the reload thread
@@ -155,8 +156,11 @@ def _try_load_onnx(model_version: str) -> LoadedModel | None:
         return None
 
     try:
-        providers = ["CUDAExecutionProvider", "CPUExecutionProvider"] \
-            if torch.cuda.is_available() else ["CPUExecutionProvider"]
+        providers = (
+            ["CUDAExecutionProvider", "CPUExecutionProvider"]
+            if torch.cuda.is_available()
+            else ["CPUExecutionProvider"]
+        )
         session = ort.InferenceSession(onnx_bytes, providers=providers)
         scaler = _load_scaler(model_version)
         threshold = _load_threshold(model_version)
@@ -177,9 +181,7 @@ def _try_load_pytorch(model_version: str) -> LoadedModel | None:
     """Load PyTorch model directly from MLflow as last resort."""
     try:
         mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
-        model = mlflow.pytorch.load_model(
-            f"models:/helix_anomaly_detector/{model_version}"
-        )
+        model = mlflow.pytorch.load_model(f"models:/helix_anomaly_detector/{model_version}")
         model.eval()
         scaler = _load_scaler(model_version)
         # Prefer threshold stored on the model object (set during training)
@@ -217,9 +219,7 @@ def get_production_version() -> str | None:
     try:
         mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
         client = MlflowClient()
-        versions = client.get_latest_versions(
-            "helix_anomaly_detector", stages=["Production"]
-        )
+        versions = client.get_latest_versions("helix_anomaly_detector", stages=["Production"])
         if versions:
             return versions[0].version
     except Exception as exc:
@@ -259,7 +259,9 @@ def startup_load() -> None:
     global _active
     version = get_production_version()
     if version is None:
-        log.warning("no_production_model_found", note="inference will return 503 until a model is promoted")
+        log.warning(
+            "no_production_model_found", note="inference will return 503 until a model is promoted"
+        )
         return
 
     model = load_model(version)

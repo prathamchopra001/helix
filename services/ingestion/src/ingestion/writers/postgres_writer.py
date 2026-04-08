@@ -1,4 +1,5 @@
 """PostgreSQL writer — upserts OHLCV rows into raw.ohlcv_data via psycopg2."""
+
 from datetime import UTC, datetime
 
 import pandas as pd
@@ -52,16 +53,18 @@ def upsert_ohlcv(
         if hasattr(ts, "to_pydatetime"):
             ts = ts.to_pydatetime()
 
-        records.append((
-            str(row["ticker"]),
-            ts,
-            float(row.get("open", 0.0)),
-            float(row.get("high", 0.0)),
-            float(row.get("low", 0.0)),
-            float(row.get("close", 0.0)),
-            int(row.get("volume", 0)),
-            now,
-        ))
+        records.append(
+            (
+                str(row["ticker"]),
+                ts,
+                float(row.get("open", 0.0)),
+                float(row.get("high", 0.0)),
+                float(row.get("low", 0.0)),
+                float(row.get("close", 0.0)),
+                int(row.get("volume", 0)),
+                now,
+            )
+        )
 
     if not records:
         log.warning("upsert_skipped_empty_df", correlation_id=correlation_id)

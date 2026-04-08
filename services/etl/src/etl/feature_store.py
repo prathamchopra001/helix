@@ -22,6 +22,7 @@ Upsert semantics:
   ON CONFLICT (ticker, timestamp) DO UPDATE — safe to re-run if ETL is triggered
   multiple times on the same day.
 """
+
 import json
 from datetime import UTC, datetime
 
@@ -34,20 +35,36 @@ from shared.logging import get_logger
 log = get_logger(__name__)
 
 _FEATURE_COLS = [
-    "open", "high", "low", "close", "volume",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
     "rsi_14",
-    "macd", "macd_signal", "macd_histogram",
-    "bb_upper", "bb_middle", "bb_lower", "bb_width", "bb_pct",
+    "macd",
+    "macd_signal",
+    "macd_histogram",
+    "bb_upper",
+    "bb_middle",
+    "bb_lower",
+    "bb_width",
+    "bb_pct",
     "atr_14",
     "obv",
     "log_return",
-    "z_score_5d", "z_score_10d", "z_score_20d", "z_score_60d",
-    "volume_ratio_5d", "volume_ratio_10d", "volume_ratio_20d",
+    "z_score_5d",
+    "z_score_10d",
+    "z_score_20d",
+    "z_score_60d",
+    "volume_ratio_5d",
+    "volume_ratio_10d",
+    "volume_ratio_20d",
     "day_gap",
     # Momentum and volatility features added for v10+ models
-    "return_5d", "return_20d",   # multi-day price momentum
-    "hl_range",                   # intraday high/low spread
-    "overnight_gap",              # open vs prev close (news events)
+    "return_5d",
+    "return_20d",  # multi-day price momentum
+    "hl_range",  # intraday high/low spread
+    "overnight_gap",  # open vs prev close (news events)
 ]
 
 _UPSERT_SQL = """
@@ -69,8 +86,8 @@ def _assign_splits(df: pd.DataFrame) -> pd.DataFrame:
     train_end = int(n * 0.70)
     val_end = int(n * 0.85)
     df["split"] = "test"
-    df.loc[:train_end - 1, "split"] = "train"
-    df.loc[train_end:val_end - 1, "split"] = "val"
+    df.loc[: train_end - 1, "split"] = "train"
+    df.loc[train_end : val_end - 1, "split"] = "val"
     return df
 
 
@@ -92,14 +109,16 @@ def upsert_features(
 
     for _, row in df.iterrows():
         features_dict = {col: float(row[col]) for col in available_cols}
-        records.append((
-            str(row["ticker"]),
-            row["timestamp"],
-            json.dumps(features_dict),
-            int(row["label"]),
-            str(row["split"]),
-            now,
-        ))
+        records.append(
+            (
+                str(row["ticker"]),
+                row["timestamp"],
+                json.dumps(features_dict),
+                int(row["label"]),
+                str(row["split"]),
+                now,
+            )
+        )
 
     if not records:
         log.warning("feature_upsert_skipped_empty", correlation_id=correlation_id)

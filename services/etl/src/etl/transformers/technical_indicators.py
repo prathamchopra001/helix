@@ -1,4 +1,5 @@
 """Compute technical indicators for a single ticker's OHLCV DataFrame."""
+
 import pandas as pd
 import ta
 
@@ -31,8 +32,8 @@ def add_technical_indicators(df: pd.DataFrame, correlation_id: str = "") -> pd.D
     df["bb_upper"] = bb.bollinger_hband()
     df["bb_middle"] = bb.bollinger_mavg()
     df["bb_lower"] = bb.bollinger_lband()
-    df["bb_width"] = bb.bollinger_wband()   # (upper - lower) / middle
-    df["bb_pct"] = bb.bollinger_pband()     # where price sits within the band (0=lower, 1=upper)
+    df["bb_width"] = bb.bollinger_wband()  # (upper - lower) / middle
+    df["bb_pct"] = bb.bollinger_pband()  # where price sits within the band (0=lower, 1=upper)
 
     # ATR — average daily price range (volatility)
     df["atr_14"] = ta.volatility.AverageTrueRange(

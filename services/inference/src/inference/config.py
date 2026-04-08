@@ -2,6 +2,7 @@
 Inference service configuration — all values come from environment variables.
 Pydantic validates on startup; missing required vars raise an error immediately.
 """
+
 from pydantic_settings import BaseSettings
 
 
