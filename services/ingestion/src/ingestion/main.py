@@ -7,16 +7,14 @@ Usage:
 """
 import os
 import uuid
-from datetime import datetime, timezone
-from typing import Optional
-
-from shared.config import BaseConfig
-from shared.logging import bind_request_context, configure_logging, get_logger
-from shared.storage import StorageClient
+from datetime import UTC, datetime
 
 from ingestion.fetchers.yahoo_finance import fetch_ohlcv
 from ingestion.writers.minio_writer import archive_ohlcv
 from ingestion.writers.postgres_writer import upsert_ohlcv
+from shared.config import BaseConfig
+from shared.logging import bind_request_context, configure_logging, get_logger
+from shared.storage import StorageClient
 
 log = get_logger(__name__)
 
@@ -42,9 +40,9 @@ class IngestionConfig(BaseConfig):
 
 
 def run_ingestion(
-    tickers: Optional[list[str]] = None,
+    tickers: list[str] | None = None,
     period: str = "1d",
-    correlation_id: Optional[str] = None,
+    correlation_id: str | None = None,
 ) -> dict[str, int]:
     """
     Fetch OHLCV data and write to PostgreSQL + MinIO for each ticker.
@@ -59,7 +57,7 @@ def run_ingestion(
     bind_request_context(correlation_id)
 
     tickers = tickers or cfg.tickers
-    date_label = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    date_label = datetime.now(UTC).strftime("%Y-%m-%d")
 
     storage = StorageClient(
         endpoint=cfg.minio_endpoint,

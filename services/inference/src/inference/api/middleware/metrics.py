@@ -4,7 +4,7 @@ Prometheus metrics for the inference service.
 Counters and histograms are module-level singletons — Prometheus client
 manages the registry internally. Import this module anywhere to access them.
 """
-from prometheus_client import Counter, Histogram, Gauge
+from prometheus_client import Counter, Gauge, Histogram
 
 # Count of predictions by outcome (anomaly=1 or normal=0)
 PREDICTIONS_TOTAL = Counter(

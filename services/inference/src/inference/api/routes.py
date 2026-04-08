@@ -9,25 +9,24 @@ GET  /metrics        — Prometheus metrics
 """
 import time
 import uuid
-from typing import Optional
 
 import numpy as np
 import psycopg2
 from fastapi import APIRouter, HTTPException, Request
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+from inference.api.middleware.metrics import (
+    ACTIVE_MODEL_VERSION,
+    INFERENCE_ERRORS,
+    INFERENCE_LATENCY,
+    PREDICTIONS_TOTAL,
+    PREPROCESS_LATENCY,
+)
+from inference.core.model_loader import Backend, get_active_model
+from inference.core.preprocessor import PreprocessingError, preprocess
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field
 from starlette.responses import Response
 
 from shared.logging import get_logger
-from inference.core.model_loader import get_active_model, Backend
-from inference.core.preprocessor import preprocess, PreprocessingError
-from inference.api.middleware.metrics import (
-    PREDICTIONS_TOTAL,
-    INFERENCE_LATENCY,
-    PREPROCESS_LATENCY,
-    ACTIVE_MODEL_VERSION,
-    INFERENCE_ERRORS,
-)
 
 log = get_logger(__name__)
 router = APIRouter()
@@ -67,17 +66,15 @@ def _run_inference(input_array: np.ndarray, model) -> float:
     """
     if model.backend == Backend.TENSORRT:
         import torch
-        import tensorrt as trt
 
         context = model.trt_context
-        engine = context.engine
 
         # Bind input/output buffers
         input_tensor = input_array  # already (1, 60, 25) float32
         output = np.empty((1, 1), dtype=np.float32)
 
-        import pycuda.driver as cuda
         import pycuda.autoinit  # noqa: F401
+        import pycuda.driver as cuda
 
         d_input = cuda.mem_alloc(input_tensor.nbytes)
         d_output = cuda.mem_alloc(output.nbytes)
@@ -116,19 +113,18 @@ def _log_prediction(
     import json as _json
     try:
         conn = psycopg2.connect(dsn)
-        with conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
+        with conn, conn.cursor() as cur:
+            cur.execute(
+                """
                     INSERT INTO predictions.inference_log
                         (request_id, ticker, timestamp, features, score, label,
                          model_version, backend, latency_ms)
                     VALUES (%s, %s, NOW(), %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (request_id) DO NOTHING
                     """,
-                    (request_id, ticker, _json.dumps({}), score, label,
-                     model_version, backend, latency_ms),
-                )
+                (request_id, ticker, _json.dumps({}), score, label,
+                 model_version, backend, latency_ms),
+            )
         conn.close()
     except Exception as exc:
         log.warning("prediction_log_failed", request_id=request_id, error=str(exc))
@@ -150,7 +146,7 @@ def _predict_one(ticker: str, request_id: str, correlation_id: str) -> PredictRe
         input_array = preprocess(ticker, model, correlation_id=correlation_id)
     except PreprocessingError as exc:
         INFERENCE_ERRORS.labels(error_type="preprocessing").inc()
-        raise HTTPException(status_code=422, detail=str(exc))
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     PREPROCESS_LATENCY.observe(time.perf_counter() - t_pre)
 
     # Inference
@@ -159,7 +155,7 @@ def _predict_one(ticker: str, request_id: str, correlation_id: str) -> PredictRe
     except Exception as exc:
         INFERENCE_ERRORS.labels(error_type="model_run").inc()
         log.error("inference_failed", ticker=ticker, error=str(exc), correlation_id=correlation_id)
-        raise HTTPException(status_code=500, detail="Inference failed")
+        raise HTTPException(status_code=500, detail="Inference failed") from exc
 
     latency_ms = (time.perf_counter() - t_start) * 1000
     label = 1 if score >= model.threshold else 0

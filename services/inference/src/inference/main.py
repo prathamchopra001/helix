@@ -12,14 +12,14 @@ Startup sequence:
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from inference.api.middleware.auth import AuthMiddleware
+from inference.api.routes import router
+from inference.core.model_loader import startup_load
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
 from shared.logging import configure_logging, get_logger
-from inference.core.model_loader import startup_load
-from inference.api.middleware.auth import AuthMiddleware
-from inference.api.routes import router
 
 configure_logging("inference")
 log = get_logger(__name__)

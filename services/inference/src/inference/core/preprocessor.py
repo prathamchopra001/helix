@@ -14,14 +14,13 @@ Why the scaler from training?
   split — or the input distribution won't match what the model expects.
 """
 import json
-from typing import Optional
 
 import numpy as np
 import psycopg2
-
-from shared.logging import get_logger
 from inference.config import settings
 from inference.core.model_loader import LoadedModel
+
+from shared.logging import get_logger
 
 log = get_logger(__name__)
 
@@ -69,10 +68,7 @@ def fetch_feature_window(ticker: str, correlation_id: str = "") -> np.ndarray:
     # Each row[0] is a JSONB dict of feature_name → value
     vectors = []
     for (features_json,) in rows:
-        if isinstance(features_json, str):
-            features = json.loads(features_json)
-        else:
-            features = features_json
+        features = json.loads(features_json) if isinstance(features_json, str) else features_json
         # Sort keys to guarantee consistent feature order (matches training)
         values = [float(features[k]) for k in sorted(features.keys())]
         vectors.append(values)

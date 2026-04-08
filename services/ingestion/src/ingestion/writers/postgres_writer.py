@@ -1,5 +1,5 @@
 """PostgreSQL writer — upserts OHLCV rows into raw.ohlcv_data via psycopg2."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pandas as pd
 import psycopg2
@@ -44,7 +44,7 @@ def upsert_ohlcv(
     Safe to call multiple times — ON CONFLICT updates existing rows.
     Returns number of rows processed.
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     records: list[tuple] = []
 
     for _, row in df.iterrows():

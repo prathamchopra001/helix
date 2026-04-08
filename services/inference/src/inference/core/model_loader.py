@@ -15,25 +15,20 @@ Thread safety:
   _model_lock protects the global _active_backend / _active_version.
   Reads don't need the lock (Python GIL protects reference swaps on CPython).
 """
-import io
-import os
 import pickle
-import tempfile
 import threading
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 import mlflow
-import numpy as np
 import onnxruntime as ort
 import torch
+from inference.config import settings
 from mlflow.tracking import MlflowClient
 
 from shared.logging import get_logger
 from shared.storage import get_minio_client
-from inference.config import settings
 
 log = get_logger(__name__)
 
@@ -57,7 +52,7 @@ class LoadedModel:
 
 
 # Global active model — swapped atomically by the reload thread
-_active: Optional[LoadedModel] = None
+_active: LoadedModel | None = None
 _model_lock = threading.Lock()
 
 
@@ -101,7 +96,7 @@ def _load_scaler(model_version: str) -> object:
         return None
 
 
-def _try_load_tensorrt(model_version: str) -> Optional[LoadedModel]:
+def _try_load_tensorrt(model_version: str) -> LoadedModel | None:
     """
     Attempt to load TRT engine from MinIO.
     Returns None if GPU unavailable, engine missing, or import fails.
@@ -147,7 +142,7 @@ def _try_load_tensorrt(model_version: str) -> Optional[LoadedModel]:
         return None
 
 
-def _try_load_onnx(model_version: str) -> Optional[LoadedModel]:
+def _try_load_onnx(model_version: str) -> LoadedModel | None:
     """Download ONNX from MinIO and create an ORT session."""
     client = get_minio_client()
     bucket = settings.minio_bucket_models
@@ -178,7 +173,7 @@ def _try_load_onnx(model_version: str) -> Optional[LoadedModel]:
         return None
 
 
-def _try_load_pytorch(model_version: str) -> Optional[LoadedModel]:
+def _try_load_pytorch(model_version: str) -> LoadedModel | None:
     """Load PyTorch model directly from MLflow as last resort."""
     try:
         mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
@@ -202,7 +197,7 @@ def _try_load_pytorch(model_version: str) -> Optional[LoadedModel]:
         return None
 
 
-def load_model(model_version: str) -> Optional[LoadedModel]:
+def load_model(model_version: str) -> LoadedModel | None:
     """Try TRT → ONNX → PyTorch in order, return first that works."""
     log.info("loading_model", model_version=model_version)
 
@@ -217,7 +212,7 @@ def load_model(model_version: str) -> Optional[LoadedModel]:
     return _try_load_pytorch(model_version)
 
 
-def get_production_version() -> Optional[str]:
+def get_production_version() -> str | None:
     """Query MLflow for the current Production model version."""
     try:
         mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
@@ -280,5 +275,5 @@ def startup_load() -> None:
     log.info("model_reload_thread_started", interval_seconds=settings.model_poll_interval)
 
 
-def get_active_model() -> Optional[LoadedModel]:
+def get_active_model() -> LoadedModel | None:
     return _active

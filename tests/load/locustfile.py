@@ -31,9 +31,7 @@ SLA targets (CPU/ONNX — no GPU):
 """
 import random
 
-from locust import HttpUser, between, task, events
-from locust.runners import MasterRunner
-
+from locust import HttpUser, between, events, task
 
 # API keys defined in .env — API_KEYS=dev-key-1,dev-key-2
 API_KEYS = ["dev-key-1", "dev-key-2"]

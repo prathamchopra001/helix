@@ -9,11 +9,11 @@ Returns 401 if header is missing, 403 if key is invalid.
 import json
 
 from fastapi import Request
+from inference.config import settings
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
 from shared.logging import get_logger
-from inference.config import settings
 
 log = get_logger(__name__)
 

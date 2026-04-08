@@ -10,7 +10,6 @@ What run_training() does:
 
 Callable from the Airflow retraining_dag or directly from a script.
 """
-import os
 
 from shared.logging import get_logger
 from training.datasets.time_series_dataset import (

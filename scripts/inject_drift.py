@@ -25,10 +25,9 @@ import json
 import os
 import sys
 import uuid
-from datetime import timedelta
+from datetime import UTC
 
 import psycopg2
-import requests
 
 
 def _get_dsn() -> str:
@@ -61,31 +60,30 @@ def inject_predictions(dsn: str) -> int:
             return 0
 
         inserted = 0
-        with conn:
-            with conn.cursor() as cur:
-                for ticker, ts in rows:
-                    cur.execute(
-                        """
+        with conn, conn.cursor() as cur:
+            for ticker, ts in rows:
+                cur.execute(
+                    """
                         INSERT INTO predictions.inference_log
                             (request_id, ticker, timestamp, features, score, label,
                              model_version, backend, latency_ms, created_at)
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         ON CONFLICT (request_id) DO NOTHING
                         """,
-                        (
-                            str(uuid.uuid4()),
-                            ticker,
-                            ts,
-                            json.dumps({}),
-                            0.72 if ticker in {"TSLA", "BTC-USD", "ETH-USD"} else 0.25,
-                            1 if ticker in {"TSLA", "BTC-USD", "ETH-USD"} else 0,
-                            "synthetic",
-                            "pytorch",
-                            10.5,
-                            ts,  # backdate created_at to match fv.timestamp date
-                        ),
-                    )
-                    inserted += 1
+                    (
+                        str(uuid.uuid4()),
+                        ticker,
+                        ts,
+                        json.dumps({}),
+                        0.72 if ticker in {"TSLA", "BTC-USD", "ETH-USD"} else 0.25,
+                        1 if ticker in {"TSLA", "BTC-USD", "ETH-USD"} else 0,
+                        "synthetic",
+                        "pytorch",
+                        10.5,
+                        ts,  # backdate created_at to match fv.timestamp date
+                    ),
+                )
+                inserted += 1
         print(f"Inserted {inserted} synthetic predictions")
         return inserted
     finally:
@@ -98,8 +96,9 @@ def inject_drifted_features(dsn: str, drift_factor: float = 2.5) -> int:
     by drift_factor, inserting them with today's timestamp.
     This guarantees PSI > 0.2 for most features.
     """
+    from datetime import datetime
+
     import numpy as np
-    from datetime import datetime, timezone
 
     conn = psycopg2.connect(dsn)
     try:
@@ -118,46 +117,45 @@ def inject_drifted_features(dsn: str, drift_factor: float = 2.5) -> int:
             print("No training feature_vectors found")
             return 0
 
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         inserted = 0
 
-        with conn:
-            with conn.cursor() as cur:
-                for ticker, feat_json in source_rows:
-                    feat = feat_json if isinstance(feat_json, dict) else json.loads(feat_json)
-                    # Shift features: multiply by drift_factor + add Gaussian noise
-                    drifted = {}
-                    for k, v in feat.items():
-                        val = float(v) * drift_factor
-                        val += np.random.normal(0, abs(val) * 0.1 + 1e-6)
-                        drifted[k] = round(val, 8)
+        with conn, conn.cursor() as cur:
+            for ticker, feat_json in source_rows:
+                feat = feat_json if isinstance(feat_json, dict) else json.loads(feat_json)
+                # Shift features: multiply by drift_factor + add Gaussian noise
+                drifted = {}
+                for k, v in feat.items():
+                    val = float(v) * drift_factor
+                    val += np.random.normal(0, abs(val) * 0.1 + 1e-6)
+                    drifted[k] = round(val, 8)
 
-                    cur.execute(
-                        """
+                cur.execute(
+                    """
                         INSERT INTO features.feature_vectors
                             (ticker, timestamp, features, label, split)
                         VALUES (%s, %s, %s, %s, %s)
                         ON CONFLICT DO NOTHING
                         """,
-                        (ticker, now, json.dumps(drifted), 1, 'val'),
-                    )
-                    inserted += 1
+                    (ticker, now, json.dumps(drifted), 1, 'val'),
+                )
+                inserted += 1
 
-                # Also insert matching predictions for today
-                for ticker, _ in source_rows[:50]:
-                    cur.execute(
-                        """
+            # Also insert matching predictions for today
+            for ticker, _ in source_rows[:50]:
+                cur.execute(
+                    """
                         INSERT INTO predictions.inference_log
                             (request_id, ticker, timestamp, features, score, label,
                              model_version, backend, latency_ms, created_at)
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         ON CONFLICT (request_id) DO NOTHING
                         """,
-                        (
-                            str(uuid.uuid4()), ticker, now, json.dumps({}),
-                            0.85, 1, "synthetic", "pytorch", 12.0, now,
-                        ),
-                    )
+                    (
+                        str(uuid.uuid4()), ticker, now, json.dumps({}),
+                        0.85, 1, "synthetic", "pytorch", 12.0, now,
+                    ),
+                )
 
         print(f"Inserted {inserted} drifted feature vectors (factor={drift_factor})")
         return inserted

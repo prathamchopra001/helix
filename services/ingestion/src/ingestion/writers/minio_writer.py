@@ -1,5 +1,5 @@
 """MinIO writer — archives raw OHLCV CSVs. Idempotent: overwrites the same key."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pandas as pd
 
@@ -24,7 +24,7 @@ def archive_ohlcv(
     Returns the object key.
     """
     if not date_label:
-        date_label = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        date_label = datetime.now(UTC).strftime("%Y-%m-%d")
 
     key = f"ohlcv/{ticker}/{date_label}.csv"
     csv_bytes = df.to_csv(index=False).encode("utf-8")

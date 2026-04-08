@@ -23,7 +23,7 @@ Upsert semantics:
   multiple times on the same day.
 """
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pandas as pd
 import psycopg2
@@ -85,7 +85,7 @@ def upsert_features(
     Returns number of rows written.
     """
     df = _assign_splits(df)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     available_cols = [c for c in _FEATURE_COLS if c in df.columns]
     records: list[tuple] = []

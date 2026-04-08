@@ -1,6 +1,8 @@
 import logging
 import sys
+
 import structlog
+
 
 def configure_logging(service_name: str, level: str = "INFO") -> None:
       """Call once at service startup before any logging occurs."""

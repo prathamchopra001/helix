@@ -17,12 +17,12 @@ import pandas as pd
 import psycopg2
 import psycopg2.extras
 
-from shared.logging import get_logger
-from etl.transformers.technical_indicators import add_technical_indicators
-from etl.transformers.rolling_stats import add_rolling_stats
-from etl.transformers.label_generator import add_anomaly_label
-from etl.validators.expectations import validate_ohlcv
 from etl.feature_store import upsert_features
+from etl.transformers.label_generator import add_anomaly_label
+from etl.transformers.rolling_stats import add_rolling_stats
+from etl.transformers.technical_indicators import add_technical_indicators
+from etl.validators.expectations import validate_ohlcv
+from shared.logging import get_logger
 
 log = get_logger(__name__)
 

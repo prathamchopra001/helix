@@ -5,10 +5,10 @@ Orchestrates drift detection and KPI computation. Called by monitoring_dag.
 """
 from __future__ import annotations
 
-from shared.logging import configure_logging, get_logger
 from monitoring.config import MonitoringConfig
 from monitoring.drift.evidently_runner import compute_drift
 from monitoring.metrics.model_metrics import compute_model_metrics
+from shared.logging import configure_logging, get_logger
 
 configure_logging("monitoring")
 log = get_logger(__name__)

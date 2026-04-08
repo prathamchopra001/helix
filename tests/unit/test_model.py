@@ -2,7 +2,6 @@
 Unit tests for the LSTM model.
 No GPU, no MLflow, no DB — pure PyTorch.
 """
-import pytest
 import torch
 
 

@@ -116,12 +116,11 @@ def _store_report(dsn: str, psi_scores: dict[str, float], triggered_retraining: 
     }
     conn = psycopg2.connect(dsn)
     try:
-        with conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    "INSERT INTO monitoring.drift_reports (report, triggered_retraining) VALUES (%s, %s)",
-                    (json.dumps(report), triggered_retraining),
-                )
+        with conn, conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO monitoring.drift_reports (report, triggered_retraining) VALUES (%s, %s)",
+                (json.dumps(report), triggered_retraining),
+            )
     finally:
         conn.close()
 

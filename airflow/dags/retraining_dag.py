@@ -27,8 +27,9 @@ def _train(**context: dict) -> None:
     sys.path.insert(0, "/opt/helix/shared/src")
     sys.path.insert(0, "/opt/helix/training/src")
 
-    from shared.logging import configure_logging
     from training.main import run_training
+
+    from shared.logging import configure_logging
 
     configure_logging("training")
     correlation_id = context["run_id"]
@@ -76,7 +77,6 @@ def _promote(**context: dict) -> None:
     Reads the training result from XCom, checks the current Production model's
     F1 in MLflow, and transitions the new version if the improvement is real.
     """
-    import mlflow
     from mlflow.tracking import MlflowClient
 
     result = context["task_instance"].xcom_pull(

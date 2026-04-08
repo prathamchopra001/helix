@@ -38,13 +38,13 @@ import mlflow.pytorch
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+import torch.nn.functional as functional
 from sklearn.metrics import f1_score, precision_score, recall_score
 from torch.utils.data import DataLoader
 
 from shared.logging import get_logger
-from training.models.lstm_transformer import LSTMTransformerModel
 from training.datasets.time_series_dataset import AnomalyWindowDataset
+from training.models.lstm_transformer import LSTMTransformerModel
 
 log = get_logger(__name__)
 
@@ -71,7 +71,7 @@ class FocalLoss(nn.Module):
         self.alpha = pos_weight / (1.0 + pos_weight)  # weight for positive class
 
     def forward(self, pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        bce = F.binary_cross_entropy(pred, target, reduction="none")
+        bce = functional.binary_cross_entropy(pred, target, reduction="none")
         pt = torch.exp(-bce)                                    # probability of correct class
         alpha_t = self.alpha * target + (1 - self.alpha) * (1 - target)
         focal = alpha_t * (1 - pt) ** self.gamma * bce

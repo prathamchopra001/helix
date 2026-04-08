@@ -22,8 +22,9 @@ def _run_monitoring(**context: dict) -> None:
     sys.path.insert(0, "/opt/helix/shared/src")
     sys.path.insert(0, "/opt/helix/monitoring/src")
 
-    from shared.logging import configure_logging
     from monitoring.main import run_monitoring
+
+    from shared.logging import configure_logging
 
     configure_logging("monitoring")
     correlation_id = context["run_id"]
