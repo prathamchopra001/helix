@@ -1,0 +1,20 @@
+groups:
+  - name: model_alerts
+    rules:
+      - alert: HighInferenceErrorRate
+        expr: rate(helix_inference_errors_total[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Inference error rate above 1%"
+          description: "The inference error rate has exceeded 1% over the last 5 minutes. Check the inference service logs for details."
+
+      - alert: NoRecentPredictions
+        expr: increase(helix_predictions_total[1h]) == 0
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "No predictions in the last hour"
+          description: "The inference service has not produced any predictions in the last hour. The service may be down or receiving no traffic."

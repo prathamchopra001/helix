@@ -1,0 +1,173 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Drift Reports (30d)",
+      "type": "stat",
+      "gridPos": {"x": 0, "y": 0, "w": 8, "h": 4},
+      "datasource": {"type": "postgres", "uid": "postgres"},
+      "targets": [
+        {
+          "rawSql": "SELECT COUNT(*) FROM monitoring.drift_reports WHERE created_at > NOW() - INTERVAL '30 days'",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "displayName": "Drift Reports",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 5},
+              {"color": "red", "value": 15}
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"]},
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 2,
+      "title": "Retraining Triggers (30d)",
+      "type": "stat",
+      "gridPos": {"x": 8, "y": 0, "w": 8, "h": 4},
+      "datasource": {"type": "postgres", "uid": "postgres"},
+      "targets": [
+        {
+          "rawSql": "SELECT COUNT(*) FROM monitoring.drift_reports WHERE triggered_retraining=true AND created_at > NOW() - INTERVAL '30 days'",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "displayName": "Retraining Triggers",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 3},
+              {"color": "red", "value": 8}
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"]},
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 3,
+      "title": "Trigger Rate (30d)",
+      "type": "stat",
+      "gridPos": {"x": 16, "y": 0, "w": 8, "h": 4},
+      "datasource": {"type": "postgres", "uid": "postgres"},
+      "targets": [
+        {
+          "rawSql": "SELECT ROUND(100.0 * SUM(CASE WHEN triggered_retraining THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0), 1) FROM monitoring.drift_reports WHERE created_at > NOW() - INTERVAL '30 days'",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "displayName": "Trigger Rate %",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 20},
+              {"color": "red", "value": 50}
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"]},
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 4,
+      "title": "Recent Drift Reports",
+      "type": "table",
+      "gridPos": {"x": 0, "y": 4, "w": 24, "h": 10},
+      "datasource": {"type": "postgres", "uid": "postgres"},
+      "targets": [
+        {
+          "rawSql": "SELECT created_at, triggered_retraining FROM monitoring.drift_reports ORDER BY created_at DESC LIMIT 10",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "created_at"},
+            "properties": [
+              {"id": "displayName", "value": "Time"},
+              {"id": "unit", "value": "dateTimeAsIso"}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "triggered_retraining"},
+            "properties": [
+              {"id": "displayName", "value": "Triggered Retraining"},
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {"type": "value", "options": {"true": {"text": "YES", "color": "red"}, "false": {"text": "NO", "color": "green"}}}
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "footer": {"show": false}
+      }
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 38,
+  "tags": ["helix", "drift", "monitoring"],
+  "templating": {"list": []},
+  "time": {"from": "now-30d", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Data Drift",
+  "uid": "helix-data-drift",
+  "version": 1
+}

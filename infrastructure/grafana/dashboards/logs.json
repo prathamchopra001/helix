@@ -1,0 +1,73 @@
+{
+  "title": "Helix — Logs",
+  "uid": "helix-logs",
+  "tags": ["helix"],
+  "timezone": "utc",
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "time": { "from": "now-30m", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "service",
+        "type": "query",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "query": "label_values(service)",
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".*",
+        "label": "Service"
+      },
+      {
+        "name": "level",
+        "type": "custom",
+        "query": "debug,info,warning,error,critical",
+        "includeAll": true,
+        "allValue": ".*",
+        "label": "Level"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Log Volume by Service",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 6 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [
+        {
+          "expr": "sum by(service) (rate({project=\"helix\",service=~\"$service\"}[1m]))",
+          "legendFormat": "{{ service }}",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "reqps" }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Log Explorer",
+      "type": "logs",
+      "gridPos": { "x": 0, "y": 6, "w": 24, "h": 18 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [
+        {
+          "expr": "{project=\"helix\",service=~\"$service\"}",
+          "queryType": "range"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "showCommonLabels": false,
+        "wrapLogMessage": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      }
+    }
+  ]
+}
