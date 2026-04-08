@@ -27,9 +27,8 @@ def _train(**context: dict) -> None:
     sys.path.insert(0, "/opt/helix/shared/src")
     sys.path.insert(0, "/opt/helix/training/src")
 
-    from training.main import run_training
-
     from shared.logging import configure_logging
+    from training.main import run_training
 
     configure_logging("training")
     correlation_id = context["run_id"]

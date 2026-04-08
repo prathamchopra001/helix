@@ -23,7 +23,6 @@ def _run_monitoring(**context: dict) -> None:
     sys.path.insert(0, "/opt/helix/monitoring/src")
 
     from monitoring.main import run_monitoring
-
     from shared.logging import configure_logging
 
     configure_logging("monitoring")

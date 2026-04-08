@@ -26,7 +26,6 @@ def _run_etl(**context: dict) -> None:
     sys.path.insert(0, "/opt/helix/etl/src")
 
     from etl.main import run_etl
-
     from shared.logging import configure_logging
 
     correlation_id = context["run_id"]

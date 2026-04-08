@@ -24,9 +24,9 @@ from enum import Enum
 import mlflow
 import onnxruntime as ort
 import torch
-from inference.config import settings
 from mlflow.tracking import MlflowClient
 
+from inference.config import settings
 from shared.logging import get_logger
 from shared.storage import get_minio_client
 

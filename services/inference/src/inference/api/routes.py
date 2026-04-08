@@ -13,6 +13,10 @@ import uuid
 import numpy as np
 import psycopg2
 from fastapi import APIRouter, HTTPException, Request
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+from pydantic import BaseModel, Field
+from starlette.responses import Response
+
 from inference.api.middleware.metrics import (
     ACTIVE_MODEL_VERSION,
     INFERENCE_ERRORS,
@@ -22,10 +26,6 @@ from inference.api.middleware.metrics import (
 )
 from inference.core.model_loader import Backend, get_active_model
 from inference.core.preprocessor import PreprocessingError, preprocess
-from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-from pydantic import BaseModel, Field
-from starlette.responses import Response
-
 from shared.logging import get_logger
 
 log = get_logger(__name__)

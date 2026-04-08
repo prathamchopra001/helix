@@ -17,9 +17,9 @@ import json
 
 import numpy as np
 import psycopg2
+
 from inference.config import settings
 from inference.core.model_loader import LoadedModel
-
 from shared.logging import get_logger
 
 log = get_logger(__name__)
