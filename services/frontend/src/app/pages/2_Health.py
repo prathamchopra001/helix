@@ -1,5 +1,6 @@
 # services/frontend/src/app/pages/2_Health.py
 """Model Health page — current model, KPIs, and drift status."""
+
 from __future__ import annotations
 
 import json
@@ -8,17 +9,18 @@ import os
 import plotly.graph_objects as go
 import requests
 import streamlit as st
-
 from db import query
 
 st.set_page_config(page_title="Helix · Health", page_icon="⬡", layout="wide")
 
 INFERENCE_URL = os.environ.get("INFERENCE_URL", "http://localhost:8000")
 API_KEY = os.environ.get("INFERENCE_API_KEY", "dev-key")
+DRIFT_PSI_THRESHOLD = float(os.environ.get("DRIFT_PSI_THRESHOLD", "0.2"))
 _HEADERS = {"X-API-Key": API_KEY}
 
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
+
 
 def _render_sidebar() -> None:
     with st.sidebar:
@@ -131,7 +133,7 @@ else:
     if psi_scores:
         features = sorted(psi_scores.keys())
         values = [psi_scores[f] for f in features]
-        colours = ["#ef4444" if v > 0.2 else "#22c55e" for v in values]
+        colours = ["#ef4444" if v > DRIFT_PSI_THRESHOLD else "#22c55e" for v in values]
 
         fig = go.Figure(
             go.Bar(
@@ -142,10 +144,10 @@ else:
             )
         )
         fig.add_hline(
-            y=0.2,
+            y=DRIFT_PSI_THRESHOLD,
             line_dash="dash",
             line_color="#f0b429",
-            annotation_text="Drift threshold (0.2)",
+            annotation_text=f"Drift threshold ({DRIFT_PSI_THRESHOLD})",
             annotation_position="top right",
         )
         fig.update_layout(
