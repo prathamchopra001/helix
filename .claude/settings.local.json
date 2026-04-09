@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(ruff check:*)",
-      "Bash(ruff format:*)"
+      "Bash(ruff format:*)",
+      "Bash(pytest tests/unit/ -v --tb=short)",
+      "Bash(python -m pytest tests/unit/ -v --tb=short)",
+      "Bash(git:*)",
+      "Bash(python -m pytest tests/ -v --no-header -q)",
+      "Bash(python -m pytest tests/ -q --no-header)"
     ]
   }
 }
