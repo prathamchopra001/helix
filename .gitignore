@@ -194,6 +194,9 @@ cython_debug/
 # Local dev notes — never push
 FINDINGS.md
 
+# Git worktrees
+.worktrees/
+
 # PyPI configuration file
 .pypirc
 
