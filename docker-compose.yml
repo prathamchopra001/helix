@@ -174,8 +174,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       DRIFT_PSI_THRESHOLD: ${DRIFT_PSI_THRESHOLD:-0.2}
-    ports:
-      - "8501:8501"
     mem_limit: 256m
     cpus: 0.5
     healthcheck:

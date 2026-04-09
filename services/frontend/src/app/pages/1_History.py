@@ -15,7 +15,7 @@ from db import query
 st.set_page_config(page_title="Helix · History", page_icon="⬡", layout="wide")
 
 INFERENCE_URL = os.environ.get("INFERENCE_URL", "http://localhost:8000")
-API_KEY = os.environ.get("INFERENCE_API_KEY", "dev-key")
+API_KEY = os.environ["INFERENCE_API_KEY"]
 _HEADERS = {"X-API-Key": API_KEY}
 
 

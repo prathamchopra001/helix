@@ -1,5 +1,6 @@
 # services/frontend/src/app/main.py
 """Predict page — submit a ticker, get an anomaly prediction."""
+
 from __future__ import annotations
 
 import os
@@ -15,11 +16,12 @@ st.set_page_config(
 )
 
 INFERENCE_URL = os.environ.get("INFERENCE_URL", "http://localhost:8000")
-API_KEY = os.environ.get("INFERENCE_API_KEY", "dev-key")
+API_KEY = os.environ["INFERENCE_API_KEY"]
 _HEADERS = {"X-API-Key": API_KEY}
 
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
+
 
 def _render_sidebar() -> None:
     with st.sidebar:
@@ -73,7 +75,7 @@ if run and ticker_input.strip():
     def _detail(r: requests.Response) -> str:
         try:
             return r.json().get("detail", r.text)
-        except Exception:
+        except (ValueError, requests.exceptions.JSONDecodeError):
             return r.text
 
     if resp.status_code == 503:

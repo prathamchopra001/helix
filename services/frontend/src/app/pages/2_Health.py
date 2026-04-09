@@ -7,6 +7,7 @@ import json
 import os
 
 import plotly.graph_objects as go
+import psycopg2
 import requests
 import streamlit as st
 from db import query
@@ -14,7 +15,7 @@ from db import query
 st.set_page_config(page_title="Helix · Health", page_icon="⬡", layout="wide")
 
 INFERENCE_URL = os.environ.get("INFERENCE_URL", "http://localhost:8000")
-API_KEY = os.environ.get("INFERENCE_API_KEY", "dev-key")
+API_KEY = os.environ["INFERENCE_API_KEY"]
 DRIFT_PSI_THRESHOLD = float(os.environ.get("DRIFT_PSI_THRESHOLD", "0.2"))
 _HEADERS = {"X-API-Key": API_KEY}
 
@@ -76,7 +77,7 @@ try:
         ORDER BY metric_name, computed_at DESC
         """
     )
-except Exception as exc:
+except psycopg2.Error as exc:
     st.error(f"Database error: {exc}")
     kpi_rows = []
 
@@ -110,7 +111,7 @@ try:
         LIMIT 1
         """
     )
-except Exception as exc:
+except psycopg2.Error as exc:
     st.error(f"Database error: {exc}")
     drift_rows = []
 
