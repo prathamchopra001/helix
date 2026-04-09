@@ -157,6 +157,30 @@ services:
       mlflow:
         condition: service_started
 
+  frontend:
+    build:
+      context: .
+      dockerfile: services/frontend/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      INFERENCE_URL: http://inference:8000
+      INFERENCE_API_KEY: ${API_KEYS:-dev-key}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "8501:8501"
+    mem_limit: 256m
+    cpus: 0.5
+    depends_on:
+      inference:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+
   # ── Monitoring ─────────────────────────────────────────────────────────────
 
   monitoring:
@@ -193,6 +217,7 @@ services:
       - grafana
       - airflow-webserver
       - inference
+      - frontend
 
   # ── Airflow ────────────────────────────────────────────────────────────────
 
