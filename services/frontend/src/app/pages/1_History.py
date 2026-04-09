@@ -1,14 +1,15 @@
 # services/frontend/src/app/pages/1_History.py
 """History page — browse recent predictions from the inference log."""
+
 from __future__ import annotations
 
 import os
 
 import pandas as pd
 import plotly.express as px
+import psycopg2
 import requests
 import streamlit as st
-
 from db import query
 
 st.set_page_config(page_title="Helix · History", page_icon="⬡", layout="wide")
@@ -19,6 +20,7 @@ _HEADERS = {"X-API-Key": API_KEY}
 
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
+
 
 def _render_sidebar() -> None:
     with st.sidebar:
@@ -58,7 +60,7 @@ try:
         LIMIT 100
         """
     )
-except Exception as exc:
+except psycopg2.Error as exc:
     st.error(f"Database error: {exc}")
     st.stop()
 
@@ -129,13 +131,15 @@ elif label_filter == "Normal":
     display_df = display_df[display_df["label"] == 0]
 
 display_df["label"] = display_df["label"].map({1: "ANOMALY", 0: "NORMAL"})
-display_df = display_df.rename(columns={
-    "ticker": "Ticker",
-    "score": "Score",
-    "label": "Label",
-    "model_version": "Model version",
-    "backend": "Backend",
-    "latency_ms": "Latency (ms)",
-    "created_at": "Timestamp",
-})
+display_df = display_df.rename(
+    columns={
+        "ticker": "Ticker",
+        "score": "Score",
+        "label": "Label",
+        "model_version": "Model version",
+        "backend": "Backend",
+        "latency_ms": "Latency (ms)",
+        "created_at": "Timestamp",
+    }
+)
 st.dataframe(display_df, use_container_width=True, hide_index=True)
