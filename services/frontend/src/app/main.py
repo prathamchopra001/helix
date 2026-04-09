@@ -38,7 +38,7 @@ def _render_sidebar() -> None:
                 st.success(f"**{version}** · {backend}")
             else:
                 st.warning("Model loading…")
-        except Exception:
+        except requests.exceptions.RequestException:
             st.error("Inference unreachable")
         st.divider()
 
@@ -70,14 +70,20 @@ if run and ticker_input.strip():
             st.error("Inference service unreachable — is the stack running?")
             st.stop()
 
+    def _detail(r: requests.Response) -> str:
+        try:
+            return r.json().get("detail", r.text)
+        except Exception:
+            return r.text
+
     if resp.status_code == 503:
         st.warning("Model is loading — try again in a moment.")
         st.stop()
     if resp.status_code == 422:
-        st.error(f"Preprocessing failed: {resp.json().get('detail', resp.text)}")
+        st.error(f"Preprocessing failed: {_detail(resp)}")
         st.stop()
     if not resp.ok:
-        st.error(f"Error {resp.status_code}: {resp.json().get('detail', resp.text)}")
+        st.error(f"Error {resp.status_code}: {_detail(resp)}")
         st.stop()
 
     data = resp.json()
